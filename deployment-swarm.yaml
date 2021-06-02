@@ -1,0 +1,47 @@
+name: docker-mailserver
+domain: public
+version: '2'
+replicas: ${numReplicas}
+disable_service_network: true
+services:
+  app:
+    image: 351075005187.dkr.ecr.eu-west-1.amazonaws.com/docker-mailserver:${tag}
+    networks:
+      - internal
+    domainname: "21re.works"
+    hostname: mail.21re.works
+    # container_name: mail
+    env_file: /home/auahmad/docker-mailserver/config/mailserver.env
+    volumes:
+      # - maildata:/var/mail
+      # - mailstate:/var/mail-state
+      # - maillogs:/var/log/mail
+      - /etc/localtime:/etc/localtime:ro
+      - /home/auahmad/docker-mailserver/config/:/tmp/docker-mailserver/
+      - traefik2:/etc/letsencrypt
+    replicas: 1
+    environment:
+      TLS_LEVEL: modern
+      SSL_TYPE: letsencrypt
+      SSL_DOMAIN: "21re.works"
+      POSTMASTER_ADDRESS: "admin@21re.works"
+      SUPERVISOR_LOGLEVEL: debug
+    constraints:
+      - "node.labels.name == node4"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.smtp.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.smtp.entrypoints=smtp"
+      - "traefik.tcp.routers.smtp.service=smtp"
+      - "traefik.tcp.services.smtp.loadbalancer.server.port=25"
+
+      - "traefik.tcp.routers.smtp-ssl.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.smtp-ssl.entrypoints=smtp-ssl"
+      - "traefik.tcp.routers.smtp-ssl.service=smtp-ssl"
+      - "traefik.tcp.services.smtp-ssl.loadbalancer.server.port=143"
+      
+      - "traefik.tcp.routers.imap-ssl.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.imap-ssl.entrypoints=imap-ssl"
+      - "traefik.tcp.routers.imap-ssl.service=imap-ssl"
+      - "traefik.tcp.services.imap-ssl.loadbalancer.server.port=587"
+    
