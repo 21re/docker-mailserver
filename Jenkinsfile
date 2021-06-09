@@ -2,7 +2,7 @@
 
 gen.init()
 
-def serviceName = "docker-mailserver"
+def serviceName = "mailserver"
 
 reportSlack {
   node {
@@ -22,7 +22,7 @@ reportSlack {
 
     stage ("Build image") {
       sh """
-      docker build --pull -t 351075005187.dkr.ecr.eu-west-1.amazonaws.com/docker-mailserver:${gen.VERSION} .
+      docker build --pull -t 351075005187.dkr.ecr.eu-west-1.amazonaws.com/${serviceName}:${gen.VERSION} .
       """
     }
 
@@ -33,7 +33,7 @@ reportSlack {
         set -x
 
         aws ecr describe-repositories --repository-names ${serviceName} || aws ecr create-repository --repository-name ${serviceName}
-        docker push 351075005187.dkr.ecr.eu-west-1.amazonaws.com/docker-mailserver:${gen.VERSION}
+        docker push 351075005187.dkr.ecr.eu-west-1.amazonaws.com/${serviceName}:${gen.VERSION}
       """
     }
 
@@ -41,8 +41,8 @@ reportSlack {
       stage ("Mark latest") {
 
         sh """
-          docker tag 351075005187.dkr.ecr.eu-west-1.amazonaws.com/docker-mailserver:${gen.VERSION} 351075005187.dkr.ecr.eu-west-1.amazonaws.com/docker-mailserver:latest
-          docker push 351075005187.dkr.ecr.eu-west-1.amazonaws.com/docker-mailserver:latest
+          docker tag 351075005187.dkr.ecr.eu-west-1.amazonaws.com/${serviceName}:${gen.VERSION} 351075005187.dkr.ecr.eu-west-1.amazonaws.com/${serviceName}:latest
+          docker push 351075005187.dkr.ecr.eu-west-1.amazonaws.com/${serviceName}:latest
         """
       }
     }
